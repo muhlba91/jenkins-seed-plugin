@@ -162,7 +162,7 @@ public class GitHubEndPoint extends AbstractEndPoint {
 
     private SeedEvent testEvent(JSONObject json) {
         return new SeedEvent(
-                getProject(json),
+                "Test OK for project " + getProject(json),
                 "",
                 SeedEventType.TEST,
                 SEED_CHANNEL

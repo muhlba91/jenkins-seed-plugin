@@ -1,13 +1,5 @@
-plugins {
-    id 'net.nemerosa.versioning' version '2.0.0'
-}
-
 allprojects {
     group = 'org.jenkins-ci.plugins'
-    version = versioning.info.display
+    version = '2.2.0'
 }
 description = "Seed Jenkins plug-in"
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.13'
-}

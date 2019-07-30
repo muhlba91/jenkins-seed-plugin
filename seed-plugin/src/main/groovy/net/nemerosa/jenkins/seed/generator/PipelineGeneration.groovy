@@ -7,7 +7,6 @@ import net.nemerosa.jenkins.seed.config.PipelineGeneratorScriptNotAllowedExcepti
 import org.apache.commons.lang.StringUtils
 import org.jenkinsci.plugins.envinject.EnvInjectPluginAction
 
-import static SeedProperties.SEED_DSL_LIBRARIES
 import static net.nemerosa.jenkins.seed.generator.SeedProperties.*
 
 class PipelineGeneration {
@@ -87,15 +86,15 @@ class PipelineGeneration {
 
         // Environment variables to inject
         Map<String, String> environment = [
-                SEED_PROJECT           : seedProject,
-                SEED_BRANCH            : seedBranch,
-                SEED_GRADLE            : scriptExtraction ? 'yes' : 'no',
-                BRANCH                 : branch,
-                PROJECT                : project,
-                PROJECT_SCM_TYPE       : scmType,
-                PROJECT_SCM_URL        : scmUrl,
+                SEED_PROJECT: seedProject,
+                SEED_BRANCH: seedBranch,
+                SEED_GRADLE: scriptExtraction ? 'yes' : 'no',
+                BRANCH: branch,
+                PROJECT: project,
+                PROJECT_SCM_TYPE: scmType,
+                PROJECT_SCM_URL: scmUrl,
                 PROJECT_SCM_CREDENTIALS: scmCredentials,
-                SEED_GROOVY_PATH       : getSeedGroovyPath(),
+                SEED_GROOVY_PATH: getSeedGroovyPath(),
         ]
 
         // Logging

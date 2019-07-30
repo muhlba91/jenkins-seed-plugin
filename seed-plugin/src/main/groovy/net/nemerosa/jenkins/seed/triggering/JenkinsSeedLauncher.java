@@ -7,7 +7,6 @@ import net.nemerosa.jenkins.seed.CannotDeleteItemException;
 import net.nemerosa.jenkins.seed.CannotFindJobException;
 import org.acegisecurity.context.SecurityContext;
 import org.acegisecurity.context.SecurityContextHolder;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,46 +19,30 @@ public class JenkinsSeedLauncher implements SeedLauncher {
     private static final Logger LOGGER = Logger.getLogger(JenkinsSeedLauncher.class.getName());
 
     @Override
-    public void launch(SeedChannel channel, String path, Map<String, String> parameters) {
+    public void launch(final SeedChannel channel, final String path, final Map<String, String> parameters) {
         LOGGER.info(String.format("Launching job at %s with parameters %s", path, parameters));
+
         SecurityContext orig = ACL.impersonate(ACL.SYSTEM);
         try {
             // Gets the job using its path
-            final AbstractProject job = findJob(path);
+            final Queue.Task job = findJob(path);
             // Launches the job
             if (parameters != null && !parameters.isEmpty()) {
-                if (job.isParameterized()) {
-                    // List of parameters
-                    List<ParameterValue> parameterValues = new ArrayList<>();
-                    for (Map.Entry<String, String> entry : parameters.entrySet()) {
-                        parameterValues.add(
-                                new StringParameterValue(
-                                        entry.getKey(),
-                                        entry.getValue()
-                                )
-                        );
-                    }
-                    // Scheduling
-                    Jenkins.getInstance().getQueue()
-                            .schedule2(
-                                    job,
-                                    0,
-                                    new ParametersAction(parameterValues),
-                                    new CauseAction(getCause(channel))
-                            );
-                } else {
-                    Jenkins.getInstance().getQueue().schedule2(
-                            job,
-                            0,
-                            new CauseAction(getCause(channel))
-                    );
+                // List of parameters
+                List<ParameterValue> parameterValues = new ArrayList<>();
+                for (Map.Entry<String, String> entry : parameters.entrySet()) {
+                    parameterValues.add(new StringParameterValue(entry.getKey(), entry.getValue()));
                 }
+                // Scheduling
+                Jenkins.getInstance().getQueue()
+                        .schedule2(job,
+                                   0,
+                                   new ParametersAction(parameterValues),
+                                   new CauseAction(getCause(channel)));
             } else {
-                Jenkins.getInstance().getQueue().schedule2(
-                        job,
-                        0,
-                        new CauseAction(getCause(channel))
-                );
+                Jenkins.getInstance().getQueue().schedule2(job,
+                                                           0,
+                                                           new CauseAction(getCause(channel)));
             }
         } finally {
             SecurityContextHolder.setContext(orig);
@@ -67,8 +50,9 @@ public class JenkinsSeedLauncher implements SeedLauncher {
     }
 
     @Override
-    public void delete(String path) {
+    public void delete(final String path) {
         LOGGER.info(String.format("Deleting item at %s", path));
+
         try {
             SecurityContext orig = ACL.impersonate(ACL.SYSTEM);
             try {
@@ -93,37 +77,16 @@ public class JenkinsSeedLauncher implements SeedLauncher {
         return new SeedCause(channel);
     }
 
-    private AbstractProject findJob(String path) {
+    private Queue.Task findJob(final String path) {
         Item item = findItem(path);
-        if (item instanceof AbstractProject) {
-            return (AbstractProject) item;
+        if (item instanceof Queue.Task) {
+            return (Queue.Task) item;
         } else {
             throw new CannotFindJobException("", path);
         }
     }
 
-    private Item findItem(String path) {
-        return findItem(Jenkins.getInstance(), "", path);
+    private Item findItem(final String path) {
+        return Jenkins.getInstance().getItemByFullName(path);
     }
-
-    private Item findItem(ItemGroup<?> container, String context, String path) {
-        if (StringUtils.contains(path, "/")) {
-            String prefix = StringUtils.substringBefore(path, "/");
-            String rest = StringUtils.substringAfter(path, "/");
-            Item item = container.getItem(prefix);
-            if (item instanceof ItemGroup) {
-                return findItem((ItemGroup) item, context + "/" + prefix, rest);
-            } else {
-                throw new CannotFindJobException(context, path);
-            }
-        } else {
-            Item item = container.getItem(path);
-            if (item != null) {
-                return item;
-            } else {
-                throw new CannotFindJobException(context, path);
-            }
-        }
-    }
-
 }

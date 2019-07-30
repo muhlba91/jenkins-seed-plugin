@@ -22,112 +22,99 @@ public abstract class AbstractEndPoint implements UnprotectedRootAction {
 
     protected final SeedService seedService;
 
-    public AbstractEndPoint(SeedService seedService) {
+    AbstractEndPoint(final SeedService seedService) {
         this.seedService = seedService;
     }
 
-    public AbstractEndPoint() {
+    AbstractEndPoint() {
         this(Guice.createInjector(new SeedServiceModule()).getInstance(SeedService.class));
     }
 
     @Override
-    public String getIconFileName() {
+    String getIconFileName() {
         return null;
     }
 
     @Override
-    public String getDisplayName() {
+    String getDisplayName() {
         return null;
     }
 
     @RequirePOST
-    public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException {
-        LOGGER.info("Incoming POST");
+    void doDynamic(final StaplerRequest req, final StaplerResponse rsp) throws IOException {
+        LOGGER.info("Incoming POST")
+
         try {
             // Extracts the event
-            SeedEvent event = extractEvent(req);
+            SeedEvent event = extractEvent(req)
             if (event == null) {
-                LOGGER.finer("Event not managed");
-                sendError(rsp, StaplerResponse.SC_ACCEPTED, "Event not managed");
+                LOGGER.finer("Event not managed")
+                sendError(rsp, StaplerResponse.SC_ACCEPTED, "Event not managed")
             } else {
-                LOGGER.finer(
-                        String.format(
-                                "Event to process: project=%s, branch=%s, type=%s, parameters=%s",
-                                event.getProject(),
-                                event.getBranch(),
-                                event.getType(),
-                                event.getParameters()
-                        )
-                );
-                // Test?
+                LOGGER.finer(String.format("Event to process: project=%s, branch=%s, type=%s, parameters=%s", event.getProject(), event.getBranch(), event.getType(), event.getParameters()))
                 if (event.type == SeedEventType.TEST) {
-                    sendError(rsp, StaplerResponse.SC_ACCEPTED, "Test OK")
-                }
-                // Actual event
-                else {
-                    // Posts the event
-                    post(event);
-                    // OK
-                    sendOk(rsp, event);
+                    sendError(rsp, StaplerResponse.SC_ACCEPTED, event.getProject())
+                } else {
+                    post(event)
+                    sendOk(rsp, event)
                 }
             }
         } catch (IOException ex) {
-            throw ex;
+            throw ex
         } catch (RequestNonAuthorizedException ex) {
-            sendError(rsp, StaplerResponse.SC_FORBIDDEN, ex.getMessage());
+            sendError(rsp, StaplerResponse.SC_FORBIDDEN, ex.getMessage())
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-            sendError(rsp, StaplerResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex)
+            sendError(rsp, StaplerResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage())
         }
     }
 
-    public static String extractParameter(StaplerRequest req, String name) {
-        return extractParameter(req, name, true);
+    static String extractParameter(final StaplerRequest req, final String name) {
+        return extractParameter(req, name, true)
     }
 
-    public static String extractParameter(StaplerRequest req, String name, boolean required) {
-        String value = req.getParameter(name);
+    static String extractParameter(final StaplerRequest req, final String name, final boolean required) {
+        String value = req.getParameter(name)
         if (StringUtils.isNotBlank(value)) {
-            return value;
+            return value
         } else if (required) {
-            throw new MissingParameterException(name);
+            throw new MissingParameterException(name)
         } else {
-            return null;
+            return null
         }
     }
 
     protected abstract SeedEvent extractEvent(StaplerRequest req) throws IOException;
 
-    protected static void sendOk(StaplerResponse rsp, SeedEvent event) throws IOException {
-        rsp.setStatus(getHttpCodeForEvent(event));
-        rsp.setContentType("application/json");
+    protected static void sendOk(final StaplerResponse rsp, final SeedEvent event) throws IOException {
+        rsp.setStatus(getHttpCodeForEvent(event))
+        rsp.setContentType("application/json")
         JSONSerializer.toJSON([
                 status: 'OK',
-                event : [
-                        project   : event.project,
-                        branch    : event.branch,
-                        type      : event.type,
+                event: [
+                        project: event.project,
+                        branch: event.branch,
+                        type: event.type,
                         parameters: event.parameters
                 ],
         ]).write(rsp.writer)
     }
 
     @SuppressWarnings("GroovyUnusedDeclaration")
-    protected static int getHttpCodeForEvent(SeedEvent event) {
-        return StaplerResponse.SC_ACCEPTED;
+    protected static int getHttpCodeForEvent(final SeedEvent event) {
+        return StaplerResponse.SC_ACCEPTED
     }
 
-    protected static void sendError(StaplerResponse rsp, int httpCode, String message) throws IOException {
-        rsp.setStatus(httpCode);
-        rsp.setContentType("application/json");
+    protected static void sendError(final StaplerResponse rsp, final int httpCode, final String message) throws IOException {
+        rsp.setStatus(httpCode)
+        rsp.setContentType("application/json")
         JSONSerializer.toJSON([
-                status : 'ERROR',
+                status: 'ERROR',
                 message: message,
         ]).write(rsp.writer)
     }
 
-    protected void post(SeedEvent event) {
-        seedService.post(event);
+    protected void post(final SeedEvent event) {
+        seedService.post(event)
     }
-
 }

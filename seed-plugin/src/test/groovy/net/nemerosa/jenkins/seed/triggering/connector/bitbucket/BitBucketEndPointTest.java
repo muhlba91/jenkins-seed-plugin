@@ -1,5 +1,6 @@
 package net.nemerosa.jenkins.seed.triggering.connector.bitbucket;
 
+import net.nemerosa.jenkins.seed.Constants;
 import net.nemerosa.jenkins.seed.triggering.SeedChannel;
 import net.nemerosa.jenkins.seed.triggering.SeedEvent;
 import net.nemerosa.jenkins.seed.triggering.SeedEventType;
@@ -23,7 +24,7 @@ public class BitBucketEndPointTest {
     public void commit_event() throws IOException {
         StaplerResponse response = mockStaplerResponse();
         // Request
-        StaplerRequest request = mockBitBucketRequest("repo:push", "/bitbucket-payload-commit.json");
+        StaplerRequest request = mockBitBucketRequest("repo:refs_changed", "/bitbucket-payload-commit.json");
         // Service mock
         SeedService seedService = mock(SeedService.class);
         // Call
@@ -31,12 +32,15 @@ public class BitBucketEndPointTest {
         // Verifying
         verify(seedService, times(1)).post(
                 new SeedEvent(
-                        "nemerosa/seed-demo",
+                        "proj/repository",
                         "master",
                         SeedEventType.COMMIT,
                         BITBUCKET_CHANNEL)
-                        .withParam("commit", "a083aca5efac42ee26ee5a554f0c57c7af3bc64c")
-        );
+                        .withParam(Constants.COMMIT_PARAMETER, "a083aca5efac42ee26ee5a554f0c57c7af3bc64c")
+                        .withParam(Constants.IS_TAG_PARAMETER, false)
+                        .withParam(Constants.AUTHOR_ID_PARAMETER, "admin")
+                        .withParam(Constants.AUTHOR_NAME_PARAMETER, "Administrator")
+                                          );
     }
 
     protected BitBucketEndPoint getEndPoint(SeedService seedService) {
@@ -44,48 +48,10 @@ public class BitBucketEndPointTest {
     }
 
     @Test
-    public void seed_event() throws IOException {
-        StaplerResponse response = mockStaplerResponse();
-        // Request
-        StaplerRequest request = mockBitBucketRequest("repo:push", "/bitbucket-payload-seed.json");
-        // Service mock
-        SeedService seedService = mock(SeedService.class);
-        // Call
-        getEndPoint(seedService).doDynamic(request, response);
-        // Verifying
-        verify(seedService, times(1)).post(
-                new SeedEvent(
-                        "nemerosa/seed-demo",
-                        "master",
-                        SeedEventType.SEED,
-                        BITBUCKET_CHANNEL)
-        );
-    }
-
-    @Test
-    public void seed_event_mixed() throws IOException {
-        StaplerResponse response = mockStaplerResponse();
-        // Request
-        StaplerRequest request = mockBitBucketRequest("repo:push", "/bitbucket-payload-seed-mixed.json");
-        // Service mock
-        SeedService seedService = mock(SeedService.class);
-        // Call
-        getEndPoint(seedService).doDynamic(request, response);
-        // Verifying
-        verify(seedService, times(1)).post(
-                new SeedEvent(
-                        "nemerosa/seed-demo",
-                        "master",
-                        SeedEventType.SEED,
-                        BITBUCKET_CHANNEL)
-        );
-    }
-
-    @Test
     public void create_branch() throws IOException {
         StaplerResponse response = mockStaplerResponse();
         // Request
-        StaplerRequest request = mockBitBucketRequest("repo:push", "/bitbucket-payload-create.json");
+        StaplerRequest request = mockBitBucketRequest("repo:refs_changed", "/bitbucket-payload-create.json");
         // Service mock
         SeedService seedService = mock(SeedService.class);
         // Call
@@ -93,24 +59,38 @@ public class BitBucketEndPointTest {
         // Verifying
         verify(seedService, times(1)).post(
                 new SeedEvent(
-                        "nemerosa/seed-demo",
-                        "test",
+                        "proj/repository",
+                        "branch",
                         SeedEventType.CREATION,
                         BITBUCKET_CHANNEL)
-        );
+                        .withParam(Constants.COMMIT_PARAMETER, "7800ed8324433c48bb59eaed6ed938b088576da5")
+                        .withParam(Constants.IS_TAG_PARAMETER, false)
+                        .withParam(Constants.AUTHOR_ID_PARAMETER, "admin")
+                        .withParam(Constants.AUTHOR_NAME_PARAMETER, "Administrator")
+                                          );
     }
 
     @Test
     public void create_tag() throws IOException {
         StaplerResponse response = mockStaplerResponse();
         // Request
-        StaplerRequest request = mockBitBucketRequest("repo:push", "/bitbucket-payload-create-tag.json");
+        StaplerRequest request = mockBitBucketRequest("repo:refs_changed", "/bitbucket-payload-create-tag.json");
         // Service mock
         SeedService seedService = mock(SeedService.class);
         // Call
         getEndPoint(seedService).doDynamic(request, response);
         // Verifying that the event is not accepted
-        verify(seedService, times(0)).post(any(SeedEvent.class));
+        verify(seedService, times(1)).post(
+                new SeedEvent(
+                        "proj/repository",
+                        "tag",
+                        SeedEventType.CREATION,
+                        BITBUCKET_CHANNEL)
+                        .withParam(Constants.COMMIT_PARAMETER, "7800ed8324433c48bb59eaed6ed938b088576da5")
+                        .withParam(Constants.IS_TAG_PARAMETER, true)
+                        .withParam(Constants.AUTHOR_ID_PARAMETER, "admin")
+                        .withParam(Constants.AUTHOR_NAME_PARAMETER, "Administrator")
+                                          );
     }
 
     private StaplerRequest mockBitBucketRequest(String event, String payload) throws IOException {
@@ -123,7 +103,7 @@ public class BitBucketEndPointTest {
                                 "UTF-8"
                         )
                 )
-        );
+                                            );
         return request;
     }
 }
