@@ -13,6 +13,7 @@ job("${PROJECT_FOLDER_PATH}/${PROJECT_SEED_NAME}") {
     parameters {
         // Default seed parameters
         stringParam('BRANCH', '', 'Path or name of the branch')
+        stringParam('IS_TAG', 'false', 'true if this is a tag')
     }
     steps {
         buildDescription('', '${BRANCH}')

@@ -86,7 +86,7 @@ public class SeedServiceImpl implements SeedService {
             // Logging
             LOGGER.info(format("Seed files changed for branch %s of project %s - regenerating the pipeline at %s", event.getBranch(), event.getProject(), path));
             // Launches the job (no parameter)
-            seedLauncher.launch(event.getChannel(), path, null);
+            seedLauncher.launch(event.getChannel(), path, generateParameters(event));
         } else {
             LOGGER.finer(format("Seed events are not enabled for project %s", event.getProject()));
         }
@@ -123,7 +123,9 @@ public class SeedServiceImpl implements SeedService {
     private Map<String, String> generateParameters(final SeedEvent event) {
         Map<String, String> parameters = new HashMap<>();
         parameters.put(Constants.BRANCH_PARAMETER, event.getBranch());
-        parameters.put(Constants.IS_TAG_PARAMETER, "false");
+        parameters.put(Constants.IS_TAG_PARAMETER, Boolean.toString(event.isTag()));
+        parameters.put(Constants.TARGET_BRANCH, "");
+        parameters.put(Constants.PULL_REQUEST_ID, "");
         for (final Map.Entry<String, Object> entry : event.getParameters().entrySet()) {
             parameters.put(entry.getKey().toUpperCase(), entry.getValue().toString());
         }

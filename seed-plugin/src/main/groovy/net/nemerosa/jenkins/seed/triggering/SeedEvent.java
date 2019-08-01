@@ -13,13 +13,31 @@ public class SeedEvent {
     private final String branch;
     private final SeedEventType type;
     private final SeedChannel channel;
+    private final boolean isTag;
+    private final String pullRequestId;
+    private final String targetBanch;
     private final Map<String, Object> parameters = new LinkedHashMap<>();
 
     public SeedEvent(String project, String branch, SeedEventType type, SeedChannel channel) {
+        this(project, branch, type, channel, false);
+    }
+
+    public SeedEvent(String project, String branch, SeedEventType type, SeedChannel channel, boolean isTag) {
+        this(project, branch, type, channel, isTag, null, null);
+    }
+
+    public SeedEvent(String project, String branch, SeedEventType type, SeedChannel channel, String pullRequestId, String targetBanch) {
+        this(project, branch, type, channel, false, pullRequestId, targetBanch);
+    }
+
+    public SeedEvent(String project, String branch, SeedEventType type, SeedChannel channel, boolean isTag, String pullRequestId, String targetBanch) {
         this.project = project;
         this.branch = branch;
         this.type = type;
         this.channel = channel;
+        this.isTag = isTag;
+        this.targetBanch = targetBanch;
+        this.pullRequestId = pullRequestId;
     }
 
     public SeedEvent withParam(String name, Object value) {
@@ -43,21 +61,37 @@ public class SeedEvent {
         return channel;
     }
 
+    public boolean isTag() {
+        return isTag;
+    }
+
+    public String getPullRequestId() {
+        return pullRequestId;
+    }
+
+    public String getTargetBanch() {
+        return targetBanch;
+    }
+
     public Map<String, Object> getParameters() {
         return parameters;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         SeedEvent event = (SeedEvent) o;
 
         return branch.equals(event.branch) &&
-                parameters.equals(event.parameters)
-                && project.equals(event.project)
-                && type == event.type;
+               parameters.equals(event.parameters)
+               && project.equals(event.project)
+               && type == event.type;
     }
 
     @Override
@@ -72,10 +106,13 @@ public class SeedEvent {
     @Override
     public String toString() {
         return "SeedEvent{" + "project='" + project + '\'' +
-                ", branch='" + branch + '\'' +
-                ", type=" + type +
-                ", channel=" + channel +
-                ", parameters=" + parameters + '}';
+               ", branch='" + branch + '\'' +
+               ", type=" + type +
+               ", channel=" + channel +
+               ", isTag=" + isTag +
+               ", pullRequestId=" + pullRequestId +
+               ", targetBanch=" + targetBanch +
+               ", parameters=" + parameters + '}';
     }
 
     public String getCommitParameter() {

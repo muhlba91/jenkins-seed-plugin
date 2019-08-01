@@ -47,6 +47,7 @@ job("${BRANCH_FOLDER_PATH}/${BRANCH_SEED_NAME}") {
             // Jenkins-safe names
             seedProject SEED_PROJECT
             seedBranch SEED_BRANCH
+            isTag IS_TAG
         }
     }
 
@@ -84,6 +85,10 @@ fi
      * Injection of environment variables for the DSL
      */
     wrappers {
+        parameters  {
+            stringParam('PULL_REQUEST_ID', '', 'the pull request id if available')
+            stringParam('TARGET_BRANCH', '', 'the target branch for the pull request')
+        }
         environmentVariables {
             env('PROJECT', PROJECT)
             env('PROJECT_SCM_TYPE', PROJECT_SCM_TYPE)
@@ -92,6 +97,7 @@ fi
             env('BRANCH', BRANCH)
             env('SEED_PROJECT', SEED_PROJECT)
             env('SEED_BRANCH', SEED_BRANCH)
+            env('IS_TAG', IS_TAG)
         }
     }
 

@@ -2,6 +2,9 @@ package net.nemerosa.jenkins.seed.triggering.connector.bitbucket;
 
 public enum BitBucketEventType {
     PUSH("repo:refs_changed"),
+    PR_OPEN("pr:opened"),
+    PR_MODIFIED("pr:modified"),
+    PR_DELETED("pr:deleted"),
     DIAGNOSTICS_PING("diagnostics:ping"),
     NONE("none");
 

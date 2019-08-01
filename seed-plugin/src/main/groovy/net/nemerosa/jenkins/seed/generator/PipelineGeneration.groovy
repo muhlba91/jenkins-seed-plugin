@@ -20,8 +20,9 @@ class PipelineGeneration {
     private final String seedBranch
     private final boolean disableDslScript
     private final String scriptDirectory
+    private final boolean isTag
 
-    PipelineGeneration(String project, String scmType, String scmUrl, String scmCredentials, String branch, String seedProject, String seedBranch, boolean disableDslScript, String scriptDirectory) {
+    PipelineGeneration(String project, String scmType, String scmUrl, String scmCredentials, String branch, String seedProject, String seedBranch, boolean disableDslScript, String scriptDirectory, boolean isTag) {
         this.branch = branch
         this.scmCredentials = scmCredentials
         this.scmUrl = scmUrl
@@ -31,6 +32,7 @@ class PipelineGeneration {
         this.seedBranch = seedBranch
         this.disableDslScript = disableDslScript
         this.scriptDirectory = scriptDirectory
+        this.isTag = isTag
     }
 
     boolean perform(AbstractBuild build, BuildListener listener) {
@@ -95,6 +97,7 @@ class PipelineGeneration {
                 PROJECT_SCM_URL: scmUrl,
                 PROJECT_SCM_CREDENTIALS: scmCredentials,
                 SEED_GROOVY_PATH: getSeedGroovyPath(),
+                IS_TAG: Boolean.toString(isTag),
         ]
 
         // Logging

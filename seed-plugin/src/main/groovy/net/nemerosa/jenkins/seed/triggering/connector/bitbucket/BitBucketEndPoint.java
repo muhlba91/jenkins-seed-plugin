@@ -11,6 +11,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -22,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -29,7 +31,12 @@ import java.util.logging.Logger;
 public class BitBucketEndPoint extends AbstractEndPoint {
     private static final String X_HUB_SIGNATURE = "X-Hub-Signature";
     private static final String X_EVENT_KEY = "X-Event-Key";
-    private static final List<BitBucketEventType> ACCEPTED_EVENTS = Arrays.asList(BitBucketEventType.PUSH, BitBucketEventType.DIAGNOSTICS_PING);
+    private static final List<BitBucketEventType> ACCEPTED_EVENTS = Arrays.asList(BitBucketEventType.PUSH,
+                                                                                  BitBucketEventType.PR_OPEN,
+                                                                                  BitBucketEventType.PR_MODIFIED,
+                                                                                  BitBucketEventType.PR_DELETED,
+                                                                                  BitBucketEventType.DIAGNOSTICS_PING);
+    private static final List<BitBucketEventType> PULL_REQUEST_DELETED_EVENTS = Collections.singletonList(BitBucketEventType.PR_DELETED);
 
     private static final Logger LOGGER = Logger.getLogger(SeedService.class.getName());
     private static final SeedChannel SEED_CHANNEL = SeedChannel.of("bitbucket", "Seed BitBucket end point");
@@ -59,32 +66,25 @@ public class BitBucketEndPoint extends AbstractEndPoint {
         // get payload
         String payload = IOUtils.toString(req.getReader());
         JSONObject json = JSONObject.fromObject(payload);
+        final String project = getProject(json, eventType);
 
         // check permissions
-        checkSignature(req, payload, getProject(json));
+        checkSignature(req, payload, project);
 
-        // Gets the list of changes
-        JSONArray changes = json.optJSONArray("changes");
-        if (changes.size() == 0) {
-            throw new RequestFormatException("At least one change is required.");
+        SeedEvent seedEvent;
+        switch (eventType) {
+            case PUSH:
+                seedEvent = getPushSeedEvent(project, json);
+                break;
+            case PR_OPEN:
+            case PR_MODIFIED:
+            case PR_DELETED:
+                seedEvent = getPullRequestSeedEvent(project, json, eventType);
+                break;
+            default:
+                seedEvent = null;
         }
-        // Takes only the first change
-        JSONObject change = changes.getJSONObject(0);
-
-        // push information
-        String changeType = change.optString("type", "");
-        boolean isNewBranch = "add".equals(changeType.toLowerCase());
-        boolean isCommit = "update".equals(changeType.toLowerCase());
-        boolean isDelete = "delete".equals(changeType.toLowerCase());
-        if (isCommit) {
-            return pushEvent(json, change);
-        } else if (isNewBranch) {
-            return createEvent(json, change);
-        } else if (isDelete) {
-            return deleteEvent(json, change);
-        } else {
-            return null;
-        }
+        return seedEvent;
     }
 
     protected void checkSignature(final StaplerRequest req, final String payload, final String project) throws UnsupportedEncodingException {
@@ -116,39 +116,94 @@ public class BitBucketEndPoint extends AbstractEndPoint {
         }
     }
 
-    private SeedEvent createEvent(final JSONObject json, final JSONObject change) {
-        return branchEvent(json, change, SeedEventType.CREATION);
+    private SeedEvent getPullRequestSeedEvent(final String project, final JSONObject json, final BitBucketEventType bitBucketEventType) {
+        JSONObject pullRequest = json.getJSONObject("pullRequest");
+        JSONObject fromRef = pullRequest.getJSONObject("fromRef");
+        JSONObject toRef = pullRequest.getJSONObject("toRef");
+        final boolean prDeleted = PULL_REQUEST_DELETED_EVENTS.contains(bitBucketEventType);
+        return addParameters(new SeedEvent(
+                                     project,
+                                     fromRef.getString("displayId"),
+                                     SeedEventType.SEED,
+                                     SEED_CHANNEL
+                             ),
+                             json.getJSONObject("actor"),
+                             fromRef.getString("latestCommit"),
+                             prDeleted ? "" : toRef.getString("displayId"),
+                             prDeleted ? "" : pullRequest.getString("id"));
     }
 
-    private SeedEvent deleteEvent(final JSONObject json, final JSONObject change) {
-        return branchEvent(json, change, SeedEventType.DELETION);
+    private SeedEvent getPushSeedEvent(final String project, final JSONObject json) {
+        // Gets the list of changes
+        JSONArray changes = json.optJSONArray("changes");
+        if (changes.size() == 0) {
+            throw new RequestFormatException("At least one change is required.");
+        }
+        // Takes only the first change
+        JSONObject change = changes.getJSONObject(0);
+
+        // push information
+        String changeType = change.optString("type", "");
+        boolean isNewBranch = "add".equals(changeType.toLowerCase());
+        boolean isCommit = "update".equals(changeType.toLowerCase());
+        boolean isDelete = "delete".equals(changeType.toLowerCase());
+        if (isCommit) {
+            return pushEvent(project, json, change);
+        } else if (isNewBranch) {
+            return createEvent(project, json, change);
+        } else if (isDelete) {
+            return deleteEvent(project, json, change);
+        } else {
+            return null;
+        }
     }
 
-    private SeedEvent branchEvent(final JSONObject json, final JSONObject change, final SeedEventType eventType) {
-        String project = getProject(json);
+    private SeedEvent createEvent(final String project, final JSONObject json, final JSONObject change) {
+        return branchEvent(project, json, change, SeedEventType.CREATION);
+    }
+
+    private SeedEvent deleteEvent(final String project, final JSONObject json, final JSONObject change) {
+        return branchEvent(project, json, change, SeedEventType.DELETION);
+    }
+
+    private SeedEvent branchEvent(final String project, final JSONObject json, final JSONObject change, final SeedEventType eventType) {
         String branchName = change.getJSONObject("ref").getString("displayId");
         return addParameters(new SeedEvent(
-                project,
-                branchName,
-                eventType,
-                SEED_CHANNEL
-        ), json.getJSONObject("actor"), change);
+                                     project,
+                                     branchName,
+                                     eventType,
+                                     SEED_CHANNEL,
+                                     isTag(change)
+                             ),
+                             json.getJSONObject("actor"),
+                             change.getString("toHash"));
     }
 
-    private SeedEvent pushEvent(final JSONObject json, final JSONObject change) {
+    private SeedEvent pushEvent(final String project, final JSONObject json, final JSONObject change) {
         String branch = change.getJSONObject("ref").getString("displayId");
         return addParameters(new SeedEvent(
-                getProject(json),
-                branch,
-                SeedEventType.COMMIT,
-                SEED_CHANNEL
-        ), json.getJSONObject("actor"), change);
+                                     project,
+                                     branch,
+                                     SeedEventType.COMMIT,
+                                     SEED_CHANNEL,
+                                     isTag(change)
+                             ),
+                             json.getJSONObject("actor"),
+                             change.getString("toHash"));
     }
 
-    private SeedEvent addParameters(final SeedEvent event, final JSONObject actor, final JSONObject change) {
-        final boolean isTag = "tag".equals(change.getJSONObject("ref").optString("type", "").toLowerCase());
-        return event.withParam(Constants.COMMIT_PARAMETER, change.getString("toHash"))
-                .withParam(Constants.IS_TAG_PARAMETER, isTag)
+    private boolean isTag(final JSONObject change) {
+        return "tag".equals(change.getJSONObject("ref").optString("type", "").toLowerCase());
+    }
+
+    private SeedEvent addParameters(final SeedEvent event, final JSONObject actor, final String commit) {
+        return addParameters(event, actor, commit, null, null);
+    }
+
+    private SeedEvent addParameters(final SeedEvent event, final JSONObject actor, final String commit, final String targetBranch, final String pullRequestId) {
+        return event.withParam(Constants.COMMIT_PARAMETER, commit)
+                .withParam(Constants.PULL_REQUEST_ID, ObjectUtils.defaultIfNull(pullRequestId, ""))
+                .withParam(Constants.TARGET_BRANCH, ObjectUtils.defaultIfNull(targetBranch, ""))
                 .withParam(Constants.AUTHOR_ID_PARAMETER, actor.getString("name"))
                 .withParam(Constants.AUTHOR_NAME_PARAMETER, actor.getString("displayName"));
     }
@@ -158,8 +213,25 @@ public class BitBucketEndPoint extends AbstractEndPoint {
         return "seed-bitbucket-api";
     }
 
-    private String getProject(final JSONObject json) {
-        final JSONObject repository = json.getJSONObject("repository");
+    private String getProject(final JSONObject json, final BitBucketEventType eventType) {
+        final JSONObject repository = getRepository(json, eventType);
         return repository.getJSONObject("project").getString("key").toLowerCase() + "/" + repository.getString("slug");
+    }
+
+    private JSONObject getRepository(final JSONObject json, final BitBucketEventType eventType) {
+        JSONObject repository;
+        switch (eventType) {
+            case PUSH:
+                repository = json.getJSONObject("repository");
+                break;
+            case PR_OPEN:
+            case PR_MODIFIED:
+            case PR_DELETED:
+                repository = json.getJSONObject("pullRequest").getJSONObject("fromRef").getJSONObject("repository");
+                break;
+            default:
+                repository = null;
+        }
+        return repository;
     }
 }
