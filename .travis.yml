@@ -19,8 +19,11 @@ stages:
 jobs:
   include:
     - stage: Test
-      name: (Integration) Test
-      script: ./gradlew test integrationTest
+      name: Test
+      script: ./gradlew test
+    - stage: Test
+      name: Integration Test
+      script: ./gradlew integrationTest
     - stage: Build
       name: Build
       script: ./gradlew build -x test -x integrationTest
