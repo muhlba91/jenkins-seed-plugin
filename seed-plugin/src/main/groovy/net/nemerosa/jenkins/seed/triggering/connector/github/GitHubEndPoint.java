@@ -20,6 +20,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
@@ -87,14 +88,14 @@ public class GitHubEndPoint extends AbstractEndPoint {
         String ghSignature = req.getHeader(X_GIT_HUB_SIGNATURE);
 
         // Secret key specification
-        SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes("UTF-8"), "HmacSHA1");
+        SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA1");
 
         // HMac signature
         try {
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(keySpec);
 
-            byte[] rawHmac = mac.doFinal(payload.getBytes("UTF-8"));
+            byte[] rawHmac = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
 
             // HMac Hex signature
             String hmac = "sha1=" + Hex.encodeHexString(rawHmac);

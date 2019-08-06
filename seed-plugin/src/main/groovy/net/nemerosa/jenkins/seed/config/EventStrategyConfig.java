@@ -29,21 +29,14 @@ public class EventStrategyConfig {
     @Wither
     private final boolean trigger;
 
-    /**
-     * When a comment event is received, defines the parameter which contains the revision/commit to build.
-     */
-    @Wither
-    private final String commit;
-
     @DataBoundConstructor
-    public EventStrategyConfig(boolean delete, boolean auto, boolean trigger, String commit) {
+    public EventStrategyConfig(boolean delete, boolean auto, boolean trigger) {
         this.delete = delete;
         this.auto = auto;
         this.trigger = trigger;
-        this.commit = commit;
     }
 
     public EventStrategyConfig() {
-        this(true, true, true, "");
+        this(true, true, true);
     }
 }

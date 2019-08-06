@@ -65,7 +65,7 @@ class SeedRule extends JenkinsRule {
         // Parameters
         job.addProperty(new ParametersDefinitionProperty(
                 new StringParameterDefinition('PROJECT', ''),
-                new ChoiceParameterDefinition('PROJECT_SCM_TYPE', ['git', 'svn'] as String[], ''),
+                new ChoiceParameterDefinition('PROJECT_SCM_TYPE', ['git'] as String[], ''),
                 new StringParameterDefinition('PROJECT_SCM_URL', ''),
                 new StringParameterDefinition('PROJECT_SCM_CREDENTIALS', ''),
                 new StringParameterDefinition('PROJECT_TRIGGER_IDENTIFIER', ''),

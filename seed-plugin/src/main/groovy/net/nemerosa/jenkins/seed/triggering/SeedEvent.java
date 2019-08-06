@@ -1,13 +1,12 @@
 package net.nemerosa.jenkins.seed.triggering;
 
+import net.nemerosa.jenkins.seed.Constants;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class SeedEvent {
-
-    public static final String EVENT_COMMIT_PARAMETER = "commit";
 
     private final String project;
     private final String branch;
@@ -116,7 +115,7 @@ public class SeedEvent {
     }
 
     public String getCommitParameter() {
-        String commit = (String) parameters.get(EVENT_COMMIT_PARAMETER);
+        String commit = (String) parameters.get(Constants.COMMIT_PARAMETER);
         if (StringUtils.isBlank(commit)) {
             return "HEAD";
         } else {

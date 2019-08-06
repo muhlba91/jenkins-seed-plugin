@@ -8,7 +8,7 @@ package acceptance
  *   - PROJECT - raw project name, like nemerosa/seed in GitHub
  *   - PROJECT_SCM_TYPE
  *   - PROJECT_SCM_URL
- *   - BRANCH - basic branch name in the SCM, like branches/xxx in SVN
+ *   - BRANCH - basic branch name in the SCM
  *
  * - computed parameters:
  *   - SEED_PROJECT: project normalised name

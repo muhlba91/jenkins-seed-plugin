@@ -91,9 +91,6 @@
                 <f:entry title="Triggers the pipeline start when commit received" field="trigger">
                     <f:checkbox checked="${instance.projectConfig.pipelineConfig.eventStrategy.trigger}" default="true"/>
                 </f:entry>
-                <f:entry title="Event parameter which contains the commit" field="commit">
-                    <f:textbox value="${instance.projectConfig.pipelineConfig.eventStrategy.commit}"/>
-                </f:entry>
             </f:section>
         </f:section>
     </f:section>

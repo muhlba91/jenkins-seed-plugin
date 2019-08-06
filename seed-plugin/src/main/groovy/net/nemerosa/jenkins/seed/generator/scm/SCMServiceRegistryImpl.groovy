@@ -1,13 +1,11 @@
 package net.nemerosa.jenkins.seed.generator.scm
 
 import net.nemerosa.jenkins.seed.generator.scm.git.GitSCMService
-import net.nemerosa.jenkins.seed.generator.scm.svn.SvnSCMService
 
 class SCMServiceRegistryImpl implements SCMServiceRegistry {
 
     private final Map<String, SCMService> scmServices = [
             git: new GitSCMService(),
-            svn: new SvnSCMService(),
     ]
 
     @Override

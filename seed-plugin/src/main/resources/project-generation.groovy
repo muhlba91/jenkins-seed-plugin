@@ -45,7 +45,6 @@ job("${PROJECT_FOLDER_PATH}/${PROJECT_SEED_NAME}") {
                         delete EVENT_STRATEGY_DELETE
                         auto EVENT_STRATEGY_AUTO
                         trigger EVENT_STRATEGY_TRIGGER
-                        commit EVENT_STRATEGY_COMMIT
                     }
                 }
                 project PROJECT

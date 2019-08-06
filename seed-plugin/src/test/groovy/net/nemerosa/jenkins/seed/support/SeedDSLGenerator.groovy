@@ -10,7 +10,7 @@ job('${jobName}') {
     label 'master'
     parameters {
         stringParam('PROJECT', '', 'Name of the project to generate - used as an identifier')
-        choiceParam('PROJECT_SCM_TYPE', ['svn', 'git'])
+        choiceParam('PROJECT_SCM_TYPE', ['git'])
         stringParam('PROJECT_SCM_URL', '', 'URL to the project SCM location, without any branch location')
         stringParam('PROJECT_SCM_CREDENTIALS', '', 'UUID of the SCM credentials')
         choiceParam('PROJECT_TRIGGER_TYPE', ['', 'github', 'bitbucket', 'http'], 'Trigger type being enabled')
@@ -42,7 +42,6 @@ job('${jobName}') {
                         delete ${config.eventStrategy.delete}
                         auto ${config.eventStrategy.auto}
                         trigger ${config.eventStrategy.trigger}
-                        commit '${config.eventStrategy.commit ?: ''}'
                     }
                 }
                 project '\${PROJECT}'

@@ -1,5 +1,6 @@
+description = "Seed Jenkins Plugin"
+
 allprojects {
     group = 'org.jenkins-ci.plugins'
     version = '2.2.0'
 }
-description = "Seed Jenkins plug-in"

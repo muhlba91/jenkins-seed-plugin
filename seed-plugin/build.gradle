@@ -2,25 +2,55 @@ plugins {
     id 'org.jenkins-ci.jpi' version '0.33.0'
 }
 
-description = "Seed Jenkins plug-in"
+description = "Seed Jenkins Plugin"
 
 ext {
-    jobDslVersion = '1.50'
-    envInjectVersion = '1.93.1'
+    snakeYamlVersion = '1.24'
+    lombokVersion = '1.18.8'
+
+    jenkinsMatrixAuthVersion = '2.4.2'
+    jenkinsJobDslVersion = '1.74'
+    jenkinsEnvInjectVersion = '2.2.0'
+    jenkinsEnvInjectLibVersion = '1.29'
+    jenkinsCloudBeesFolderVersion = '6.9'
+    jenkinsDescriptionSetterVersion = '1.10'
+    jenkinsParametrizedTriggerVersion = '2.35.2'
+
+    jenkinsTestHarnessVersion = '2.54'
+    jenkinsSymbolAnnotationVersion = '1.20'
+    jenkinsJunitVersion = '1.28'
+    jenkinsStructsVersion = '1.20'
+    jenkinsMatrixProjectVersion = '1.14'
+    jenkinsCredentialsVersion = '2.2.1'
+    jenkinsGitVersion = '3.11.0'
+
+    mockitoVersion = '2.28.2'
+    jgitVersion = '5.4.0.201906121030-r'
+}
+
+// FIXME remove again!
+repositories {
+    mavenCentral()
+    maven { url 'http://jcenter.bintray.com' }
+    maven { url 'http://repo.jenkins-ci.org/public' }
 }
 
 jenkinsPlugin {
-    coreVersion = '2.145'                                            // Version of Jenkins core this plugin depends on.
-    displayName = 'Seed Jenkins plug-in'                             // Human-readable name of plugin.
-    url = 'http://wiki.jenkins-ci.org/display/JENKINS/Seed+Plugin'   // URL for plugin on Jenkins wiki or elsewhere.
-    gitHubUrl = 'https://github.com/jenkinsci/seed-plugin'           // Plugin URL on GitHub. Optional.
+    coreVersion = '2.145'
+    displayName = 'Seed Jenkins plug-in'
+    url = 'http://wiki.jenkins-ci.org/display/JENKINS/Seed+Plugin'
+    gitHubUrl = 'https://github.com/jenkinsci/seed-plugin'
 
-    // The developers section is optional, and corresponds to the POM developers section.
     developers {
         developer {
             id 'dcoraboeuf'
             name 'Damien Coraboeuf'
             email 'damien.coraboeuf@gmail.com'
+        }
+        developer {
+            id 'muhlba91'
+            name 'Daniel Muehlbachler'
+            email 'daniel.muehlbachler@niftyside.com'
         }
     }
 }
@@ -37,43 +67,42 @@ sourceSets {
     }
 }
 
-dependencies {
-    compile 'org.yaml:snakeyaml:1.15'
-    compile 'org.projectlombok:lombok:1.18.8'
-    annotationProcessor 'org.projectlombok:lombok:1.18.8'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
-    jenkinsPlugins "org.jenkins-ci.plugins:matrix-auth:1.4@jar"
-    jenkinsPlugins 'org.jenkins-ci.plugins:cloudbees-folder:5.11@jar'
-    jenkinsPlugins 'org.jenkins-ci.plugins:description-setter:1.10@jar'
-    jenkinsPlugins 'org.jenkins-ci.plugins:parameterized-trigger:2.26@jar'
-    jenkinsPlugins "org.jenkins-ci.plugins:envinject:${envInjectVersion}@jar"
-    compile 'org.jenkins-ci.lib:envinject-lib:1.24'
+dependencies {
+    compile "org.yaml:snakeyaml:${snakeYamlVersion}"
+    compile "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // Jenkins plugins and libraries
+    jenkinsPlugins "org.jenkins-ci.plugins:matrix-auth:${jenkinsMatrixAuthVersion}@jar"
+    jenkinsPlugins "org.jenkins-ci.plugins:cloudbees-folder:${jenkinsCloudBeesFolderVersion}@jar"
+    jenkinsPlugins "org.jenkins-ci.plugins:description-setter:${jenkinsDescriptionSetterVersion}@jar"
+    jenkinsPlugins "org.jenkins-ci.plugins:parameterized-trigger:${jenkinsParametrizedTriggerVersion}@jar"
+    jenkinsPlugins "org.jenkins-ci.plugins:envinject:${jenkinsEnvInjectVersion}@jar"
+    compile "org.jenkins-ci.lib:envinject-lib:${jenkinsEnvInjectLibVersion}"
     // The Job DSL
-    jenkinsPlugins "org.jenkins-ci.plugins:job-dsl:${jobDslVersion}@jar"
-    providedCompile "org.jenkins-ci.plugins:job-dsl-core:${jobDslVersion}@jar"
-    providedCompile "org.jenkins-ci.plugins:job-dsl:${jobDslVersion}@jar"
+    jenkinsPlugins "org.jenkins-ci.plugins:job-dsl:${jenkinsJobDslVersion}@jar"
+    providedCompile "org.jenkins-ci.plugins:job-dsl-core:${jenkinsJobDslVersion}@jar"
+    providedCompile "org.jenkins-ci.plugins:job-dsl:${jenkinsJobDslVersion}@jar"
 
     // Testing
+    // Jenkins Plugins
+    jenkinsTest "org.jenkins-ci.main:jenkins-test-harness:${jenkinsTestHarnessVersion}@jar"
+    jenkinsTest "org.jenkins-ci:symbol-annotation:${jenkinsSymbolAnnotationVersion}"
+    jenkinsTest "org.jenkins-ci.plugins:junit:${jenkinsJunitVersion}@jar"
+    jenkinsTest "org.jenkins-ci.plugins:structs:${jenkinsStructsVersion}@jar"
+    jenkinsTest "org.jenkins-ci.plugins:matrix-project:${jenkinsMatrixProjectVersion}@jar"
+    jenkinsTest "org.jenkins-ci.plugins:envinject:${jenkinsEnvInjectVersion}"
+    jenkinsTest "org.jenkins-ci.plugins:credentials:${jenkinsCredentialsVersion}@jar"
+    jenkinsTest "org.jenkins-ci.plugins:git:${jenkinsGitVersion}"
 
-    jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.7@jar'
-    jenkinsTest 'org.jenkins-ci:symbol-annotation:1.1'
-
-    jenkinsTest 'org.jenkins-ci.plugins:junit:1.7@jar'
-    jenkinsTest 'org.jenkins-ci.plugins:structs:1.1@jar'
-    jenkinsTest 'org.jenkins-ci.plugins:matrix-project:1.4@jar'
-    jenkinsTest "org.jenkins-ci.plugins:envinject:${envInjectVersion}"
-    jenkinsTest 'org.jenkins-ci.plugins:credentials:1.22@jar'
-    jenkinsTest 'org.jenkins-ci.plugins:git:2.3.5'
-    // TODO SVN Disable SVN tests until plugin + JenkinsRule situation solved
-    // jenkinsTest 'org.jenkins-ci.plugins:subversion:2.5.7'
-
-    testCompile 'org.mockito:mockito-core:1.9.5'
-    testCompile 'org.eclipse.jgit:org.eclipse.jgit:4.3.1.201605051710-r'
-    testCompile 'org.tmatesoft.svnkit:svnkit:1.8.12'
+    testCompile "org.mockito:mockito-core:${mockitoVersion}"
+    testCompile "org.eclipse.jgit:org.eclipse.jgit:${jgitVersion}"
 }
 
 // Integration tests
-
 task integrationTest(type: Test) {
     include 'net/nemerosa/jenkins/seed/integration/**'
     include 'net/nemerosa/seed/integration/**'
@@ -89,7 +118,6 @@ build.dependsOn integrationTest
 integrationTest.mustRunAfter test
 
 // Copy of the pipeline demo JAR for some integration tests
-
 task copyPipelineDemo(type: Copy, dependsOn: ':seed-pipeline-demo:jar') {
     from project(':seed-pipeline-demo').tasks.jar
     into project.file('build/integration/repository')

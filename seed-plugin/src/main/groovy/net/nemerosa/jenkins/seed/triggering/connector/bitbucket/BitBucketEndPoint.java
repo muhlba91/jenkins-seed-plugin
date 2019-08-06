@@ -202,8 +202,8 @@ public class BitBucketEndPoint extends AbstractEndPoint {
 
     private SeedEvent addParameters(final SeedEvent event, final JSONObject actor, final String commit, final String targetBranch, final String pullRequestId) {
         return event.withParam(Constants.COMMIT_PARAMETER, commit)
-                .withParam(Constants.PULL_REQUEST_ID, ObjectUtils.defaultIfNull(pullRequestId, ""))
-                .withParam(Constants.TARGET_BRANCH, ObjectUtils.defaultIfNull(targetBranch, ""))
+                .withParam(Constants.PULL_REQUEST_ID_PARAMETER, ObjectUtils.defaultIfNull(pullRequestId, ""))
+                .withParam(Constants.TARGET_BRANCH_PARAMETER, ObjectUtils.defaultIfNull(targetBranch, ""))
                 .withParam(Constants.AUTHOR_ID_PARAMETER, actor.getString("name"))
                 .withParam(Constants.AUTHOR_NAME_PARAMETER, actor.getString("displayName"));
     }

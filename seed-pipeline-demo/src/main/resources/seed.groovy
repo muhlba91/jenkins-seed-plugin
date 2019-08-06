@@ -12,7 +12,7 @@ import static net.nemerosa.seed.demo.GeneralHelper.generalConfiguration
  *   - PROJECT_CLASS
  *   - PROJECT_SCM_TYPE
  *   - PROJECT_SCM_URL
- *   - BRANCH - basic branch name in the SCM, like branches/xxx in SVN
+ *   - BRANCH - basic branch name in the SCM
  *
  * - computed parameters:
  *   - SEED_PROJECT: project normalised name

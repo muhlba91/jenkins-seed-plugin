@@ -124,8 +124,8 @@ public class SeedServiceImpl implements SeedService {
         Map<String, String> parameters = new HashMap<>();
         parameters.put(Constants.BRANCH_PARAMETER, event.getBranch());
         parameters.put(Constants.IS_TAG_PARAMETER, Boolean.toString(event.isTag()));
-        parameters.put(Constants.TARGET_BRANCH, "");
-        parameters.put(Constants.PULL_REQUEST_ID, "");
+        parameters.put(Constants.TARGET_BRANCH_PARAMETER, "");
+        parameters.put(Constants.PULL_REQUEST_ID_PARAMETER, "");
         for (final Map.Entry<String, Object> entry : event.getParameters().entrySet()) {
             parameters.put(entry.getKey().toUpperCase(), entry.getValue().toString());
         }

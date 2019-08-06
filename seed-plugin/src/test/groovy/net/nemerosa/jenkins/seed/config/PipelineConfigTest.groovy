@@ -24,7 +24,6 @@ class PipelineConfigTest {
         def eventStrategy = cfg.eventStrategy
         assert eventStrategy.auto
         assert eventStrategy.delete
-        assert eventStrategy.commit == ''
     }
 
     @Test
