@@ -5,6 +5,7 @@ public enum BitBucketEventType {
     PR_OPEN("pr:opened"),
     PR_MODIFIED("pr:modified"),
     PR_DELETED("pr:deleted"),
+    PR_MERGED("pr:merged"),
     DIAGNOSTICS_PING("diagnostics:ping"),
     NONE("none");
 

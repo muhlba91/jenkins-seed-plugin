@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -35,8 +34,10 @@ public class BitBucketEndPoint extends AbstractEndPoint {
                                                                                   BitBucketEventType.PR_OPEN,
                                                                                   BitBucketEventType.PR_MODIFIED,
                                                                                   BitBucketEventType.PR_DELETED,
+                                                                                  BitBucketEventType.PR_MERGED,
                                                                                   BitBucketEventType.DIAGNOSTICS_PING);
-    private static final List<BitBucketEventType> PULL_REQUEST_DELETED_EVENTS = Collections.singletonList(BitBucketEventType.PR_DELETED);
+    private static final List<BitBucketEventType> PULL_REQUEST_DELETED_EVENTS = Arrays.asList(BitBucketEventType.PR_DELETED,
+                                                                                              BitBucketEventType.PR_MERGED);
 
     private static final Logger LOGGER = Logger.getLogger(SeedService.class.getName());
     private static final SeedChannel SEED_CHANNEL = SeedChannel.of("bitbucket", "Seed BitBucket end point");
